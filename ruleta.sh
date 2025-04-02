@@ -15,8 +15,8 @@ function helpPanel() {
 
 function martingala() {
     echo -e "\n Dinero actual: ${money}€"
-    echo -ne "¿Cuanto dinero quieres apostar? -> " && read initial_bet
-    echo -ne "¿Quieres jugar a par o impar? -> " && read par_impar
+    echo -ne "¿Cuanto dinero quieres apostar? -> " && initial_bet=10
+    echo -ne "¿Quieres jugar a par o impar? -> " && par_impar="par"
 
     if [ "$par_impar" = "par" ]; then
         mi_jugada=0
@@ -28,23 +28,45 @@ function martingala() {
 
     max_money=$((2 * $money))
 
-    let -i counter=0
+    counter=0
 
-    while [ $money -ge 0 ] && [ $money -le $max_money ]; do
+    while [ $money -gt 0 ] && [ $money -le $max_money ]; do
         tirada=$(($RANDOM % 37))
 
+        if [ $tirada -eq 0 ]; then
+             money=$(($money - $initial_bet))
+            if [ $money -ge $(($initial_bet * 2)) ]; then
+                initial_bet=$(($initial_bet * 2))
+            else
+                initial_bet=$money
+            fi
+        fi
+
         if [ $(($tirada % 2)) -eq $mi_jugada ]; then
-            money=$((money + $initial_bet))
+            money=$(($money + $initial_bet))
         else
-            money=$((money - $initial_bet))
-            initial_bet=$(($initial_bet * 2))
+            money=$(($money - $initial_bet))
+            if [ $money -ge $(($initial_bet * 2)) ]; then
+                initial_bet=$(($initial_bet * 2))
+            else
+                initial_bet=$money
+            fi
         fi
         counter=$(($counter + 1))
-        echo -e "Tirada número: $counter, Apuesta actual: $initial_bet, Dinero actual: ${money}€"
+        echo -e "\n\nTirada número: $counter"
+        echo -e "Apuesta actual: $initial_bet"
+        echo -e "Dinero actual: ${money}€"
+        echo -e "Ha salido el: $tirada"
     done
 
     echo -e "\n Fin del juego.\n"
-    echo -e "Dinero final: ${money}€\n"
+    final_money=$(($money - 1000))
+    echo -e "Dinero final: ${final_money}€\n"
+    if [ $money -ge $max_money ]; then
+        echo "Has ganado"
+    else
+        echo "Has perdido"
+    fi
 }
 
 while getopts "m:t:h" arg; do
